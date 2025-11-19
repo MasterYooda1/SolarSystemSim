@@ -1,5 +1,5 @@
 import numpy as np
-from Particle2 import Particle
+from Particle import Particle
 import copy
 from astropy.time import Time
 from astropy.coordinates import get_body_barycentric_posvel
@@ -102,6 +102,18 @@ Earth = Particle(
 )
 bodies.append(Earth)
 
+pos, vel = get_body_barycentric_posvel("moon", t, ephemeris="jpl")
+position, velocity = toStateVec(pos, vel)
+mMoon = (constants.GM_moon / G).value
+Moon = Particle(
+    position=np.array(position),
+    velocity=np.array(velocity),
+    acceleration=np.array([0, 0, 0]),
+    name="Moon",
+    mass=mMoon 
+)
+bodies.append(Moon)
+
 # Mars
 pos, vel = get_body_barycentric_posvel("mars", t, ephemeris="jpl")
 position, velocity = toStateVec(pos, vel)
@@ -180,7 +192,7 @@ Pluto = Particle(
 )
 bodies.append(Pluto)
 
-stepCount = 2000 # How many steps the program will simulate
+stepCount = 20000 # How many steps the program will simulate
 Data = [] # Data to be written to file
 
 interval = 86400  # How long the interval between calculated steps is in seconds
@@ -204,7 +216,6 @@ for step in range(stepCount):
 
     # If the Step is a Multiple of the saveInterval Write to file.
     if step % saveInterval == 0:
-        # --- 4. save snapshot as needed ---
         Data.append([step, *(copy.deepcopy(b) for b in bodies)]) # Writes the Step number as well as a copy of the data for each body in the system
 
 np.save("TwoBodyTest.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
