@@ -194,11 +194,8 @@ def loadBodies(t):
     
     return bodies
 
-def runSim(bodies, saveInterval, stepCount=20000, interval=86400):
+def runSim(bodies, saveInterval, stepCount, interval):
     Data = [] # Data to be written to file
-
-    interval = 50  # How long the interval between calculated steps is in seconds
-    saveInterval = 1 # How Frequently the Data is saved (=50 is every 50 steps)
 
     for step in range(stepCount):
         # Set the Magnitude of Acceleration to 0 for each body so it can be recalculated every step
@@ -222,12 +219,15 @@ def runSim(bodies, saveInterval, stepCount=20000, interval=86400):
 
     np.save("TwoBodyTest.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
     
-saveInterval = 1
+saveInterval = 1 # Writes to File Every N Loops
+interval = 50 # Updates the Simulation every N Seconds
+stepCount = 20000 # Repeats the update for N times
 
 def main():
     t = Time("2025-11-17 14:25:00.0", scale="tdb") # Current Time
     bodies = loadBodies(t)
-    runSim(bodies, saveInterval=saveInterval)
+
+    runSim(bodies, saveInterval, stepCount, interval)
 
 if __name__ == "__main__": # Only Runs if You're not Exporting a Function to another file
     main()
