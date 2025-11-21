@@ -198,20 +198,15 @@ def runSim(bodies, saveInterval, stepCount, interval):
     Data = [] # Data to be written to file
 
     for step in range(stepCount):
-        # Set the Magnitude of Acceleration to 0 for each body so it can be recalculated every step
-        for body in bodies:
-            body.acceleration = np.array([0.0, 0.0, 0.0], dtype=float)
-
-        # Calculate the Acceleration for Body 2 on Body 1 and Sum to the overall acceleration vector
-        # Has a big o of O(n^2) so for a large quantity of bodies it will be inefficient.
-        for i, body1 in enumerate(bodies):
-            for j, body2 in enumerate(bodies):
-                if i != j: # If the Body is not itself 
-                    body1.updateGravitationalAcceleration(body2)
-
         # Loop through each body and update Positon and Velocity
+        newStates = []
         for body in bodies:
-            body.update(interval)
+            newPos, newVel = body.updateLeapfrog(bodies, interval)
+            newStates.append((newPos, newVel))
+            
+        for body, (newPos, newVel) in zip(bodies, newStates):
+                body.position = newPos
+                body.velocity = newVel
 
         # If the Step is a Multiple of the saveInterval Write to file.
         if step % saveInterval == 0:

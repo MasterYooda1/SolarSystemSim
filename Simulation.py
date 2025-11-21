@@ -32,7 +32,7 @@ for i in range(0, stepCount * interval, interval):
         for particle2 in [Earth, Satellite]:
             if particle1 != particle2:
                 particle1.updateGravitationalAcceleration(particle2)
-                particle1.update(interval)
+                particle1.updateEuler(interval)
     if (i / 6) % 100 == 0:
         # Append Data to File
         Data.append([i + 6, copy.deepcopy(Earth), copy.deepcopy(Satellite)])

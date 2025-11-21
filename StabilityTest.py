@@ -30,20 +30,20 @@ datasetPosition, datasetVelocity = np.array(datasetPosition, dtype=float) , np.a
 DataIn = np.load("TwoBodyTest.npy", allow_pickle=True)
 
 EntryNo = (daysDifference * 86400) // interval // saveInterval # Value for the Entry we are testing. There are stepCount entries, every interval seconds and saves every saveInterval steps, converts daysDifference to Seconds
-print(EntryNo)
 if EntryNo <= stepCount:
     simulatedPosition = DataIn[EntryNo][4].position
     simulatedVelocity = DataIn[EntryNo][4].velocity
 else:
     raise IndexError("Out of Bounds! The data does not cover this far into the future, alter the interval and saveInterval to fix this!")
 
-changeInPosition = DataIn[EntryNo][4].position - datasetPosition
-changeInVelocity = DataIn[EntryNo][4].velocity - datasetVelocity
+changeInPosition = simulatedPosition - datasetPosition # Compute Inaccuracies
+changeInVelocity = simulatedVelocity - datasetVelocity
 
-fig, ax = plt.subplots()
-
-# Ugly One Liner
+# Ugly One Liner to assign each variable with the relevant magnitudes 
 datasetPosMagnitude, simulatedPosMagnitude, datasetVelMagnitude, simulatedVelMagnitude  = np.linalg.norm(datasetPosition), np.linalg.norm(simulatedPosition), np.linalg.norm(datasetVelocity), np.linalg.norm(simulatedVelocity)
+
+"""
+fig, ax = plt.subplots()
 
 print(f"Dataset Position Magnitude: {datasetPosMagnitude} m")
 print(f"Simulated Position Magnitude: {simulatedPosMagnitude} m")
@@ -55,7 +55,6 @@ ax.plot(datasetPosition[0], datasetPosition[1], marker='o', label="JPL Position"
 ax.plot(0, 0, marker='o', label='Sun')
 ax.plot(1.496E11, 0, marker="o", label="Expected Distance")
 ax.legend()
-
 
 maxRange = 0
 for vector in [datasetPosition, simulatedPosition]:
@@ -70,12 +69,15 @@ ax.set_ylim(-maxRange, maxRange)
     
 
 plt.show()
+"""
 
-
-if abs(np.linalg.norm(changeInPosition)) > 10000 or abs(np.linalg.norm(changeInVelocity)) > 10000:
-    raise ValueError(f"The Simulation is Not Accurate to {str(newTestingDate)}, or the Position is more than 10km Off: {changeInPosition}, or The Simulation is Not Accurate to {str(newTestingDate)}, the Velocity is more than 10km/s Off: {changeInVelocity}")
+# Checks to See if the values fall within a certain inaccuracy if not it throws an error
+if abs(np.linalg.norm(changeInPosition)) > 10 or abs(np.linalg.norm(changeInVelocity)) > 10:
+    raise ValueError(f"The Simulation is Not Accurate to {str(newTestingDate)}, or the Position is more than 10km Off: {np.linalg.norm(changeInPosition)/1000} km, The Simulation is Not Accurate to {str(newTestingDate)}, or the Velocity is more than 10km/s Off: {np.linalg.norm(changeInVelocity)/1000} km/s")
 else:
     print("Your values are in the expected range")
+    print(changeInPosition)
+    print(changeInVelocity)
 
 
 
