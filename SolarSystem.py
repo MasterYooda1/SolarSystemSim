@@ -6,6 +6,7 @@ from astropy.coordinates import get_body_barycentric_posvel
 from poliastro import constants
 from astropy.constants import G
 from spiceypy import sxform, mxvg
+import time
 
 def toStateVec(pos, vel, t):
     """
@@ -197,22 +198,35 @@ def loadBodies(t):
 def runSim(bodies, saveInterval, stepCount, interval):
     Data = [] # Data to be written to file
 
+    for body in bodies:
+        body.computeAllAcceleration(bodies)
+    
     for step in range(stepCount):
         # Loop through each body and update Positon and Velocity
-        newStates = []
         for body in bodies:
-            newPos, newVel = body.updateVerletVelocity(bodies, interval)
-            newStates.append((newPos, newVel))
+            body.position += body.velocity * interval + 0.5 * body.acceleration * interval ** 2
             
-        for body, (newPos, newVel) in zip(bodies, newStates):
-                body.position = newPos
-                body.velocity = newVel
-
+        for body in bodies:
+            body._next_acceleration = np.zeros(3, dtype=float)
+            for body2 in bodies:
+                if body is not body2:
+                    dist_vec = body2.position - body.position
+                    dist = np.linalg.norm(dist_vec)
+                    if dist < 1E-25:
+                        dist = 1E-25
+                    direction = dist_vec / dist
+                    body._next_acceleration += (body.G * body2.mass / dist ** 2) * direction
+                    
+        for body in bodies:
+            body.velocity += 0.5 * (body.acceleration + body._next_acceleration) * interval
+            body.acceleration = body._next_acceleration.copy()
+        
         # If the Step is a Multiple of the saveInterval Write to file.
         if step % saveInterval == 0:
             Data.append([step, *(copy.deepcopy(b) for b in bodies)]) # Writes the Step number as well as a copy of the data for each body in the system
 
-    np.save("TwoBodyTest.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
+
+    np.save("NBodyTest.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
     
 # Defining these variables outside of the main function allows them to be imported without running the code in main every time.
 saveInterval = 1 # Writes to File Every N Loops
