@@ -1,5 +1,5 @@
 import time
-from SolarSystem import toStateVec, saveInterval, interval, stepCount
+from SolarSystem import toStateVec, save_interval, interval, step_count
 import numpy as np
 from astropy.time import Time
 from astropy.coordinates import get_body_barycentric_posvel
@@ -7,77 +7,48 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 # Test to check whether the orbit remains stable after a certain time
 
-bodyNames = ["Sun", "Mercury", "Venus", "Earth", "Moon", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+body_names = ["Sun", "Mercury", "Venus", "Earth", "Moon", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
 #delay = 3 # The Amount of days you want to test data in, requires the interval to be 86400 (1 day)
-#if not delay % saveInterval == 0:
+#if not delay % save_interval == 0:
 #    raise ValueError("The Number of days you want to test falls between a save interval, please change the delay or the save interval")
     
-chosenBody = "Earth"
-daysDifference = 5
-newTestingDate = Time("2025-11-22 14:25:00.0", scale="tdb") # Time to Check for Accuracy
+chosen_body = "Earth"
+days_difference = 5
+new_testing_date = Time("2025-11-22 14:25:00.0", scale="tdb") # Time to Check for Accuracy
 
-if not type(chosenBody) is str:
+if not type(chosen_body) is str:
     raise TypeError("Only String Names, like 'Earth' are allowed")
-if not chosenBody in bodyNames:
+if not chosen_body in body_names:
     raise ValueError("That Body is not in our Simulation")
 
-pos, vel = get_body_barycentric_posvel(chosenBody.lower(), newTestingDate, ephemeris="jpl")
+pos, vel = get_body_barycentric_posvel(chosen_body.lower(), new_testing_date, ephemeris="jpl")
 
-datasetPosition, datasetVelocity = toStateVec(pos, vel, newTestingDate)
-datasetPosition, datasetVelocity = np.array(datasetPosition, dtype=float) , np.array(datasetVelocity, dtype=float)
+dataset_position, dataset_velocity = toStateVec(pos, vel, new_testing_date)
+dataset_position, dataset_velocity = np.array(dataset_position, dtype=float) , np.array(dataset_velocity, dtype=float)
 
 # Load in the Test Data to Check for Accuracy
-DataIn = np.load("TwoBodyTest.npy", allow_pickle=True)
+data_in = np.load("NBodyTest.npy", allow_pickle=True)
 
-EntryNo = (daysDifference * 86400) // interval // saveInterval # Value for the Entry we are testing. There are stepCount entries, every interval seconds and saves every saveInterval steps, converts daysDifference to Seconds
-if EntryNo <= stepCount:
-    simulatedPosition = DataIn[EntryNo][4].position
-    simulatedVelocity = DataIn[EntryNo][4].velocity
+entry_no = (days_difference * 86400) // interval // save_interval # Value for the Entry we are testing. There are step_count entries, every interval seconds and saves every save_interval steps, converts days_difference to Seconds
+if entry_no <= step_count:
+    simulated_position = data_in[entry_no][4].position
+    simulated_velocity = data_in[entry_no][4].velocity
 else:
-    raise IndexError("Out of Bounds! The data does not cover this far into the future, alter the interval and saveInterval to fix this!")
+    raise IndexError("Out of Bounds! The data does not cover this far into the future, alter the interval and save_interval to fix this!")
 
-changeInPosition = simulatedPosition - datasetPosition # Compute Inaccuracies
-changeInVelocity = simulatedVelocity - datasetVelocity
+change_in_position = simulated_position - dataset_position # Compute Inaccuracies
+change_in_velocity = simulated_velocity - dataset_velocity
 
 # Ugly One Liner to assign each variable with the relevant magnitudes 
-datasetPosMagnitude, simulatedPosMagnitude, datasetVelMagnitude, simulatedVelMagnitude  = np.linalg.norm(datasetPosition), np.linalg.norm(simulatedPosition), np.linalg.norm(datasetVelocity), np.linalg.norm(simulatedVelocity)
-
-"""
-fig, ax = plt.subplots()
-
-print(f"Dataset Position Magnitude: {datasetPosMagnitude} m")
-print(f"Simulated Position Magnitude: {simulatedPosMagnitude} m")
-print(f"Dataset Position Magnitude: {datasetVelMagnitude} m/s")
-print(f"Dataset Position Magnitude: {simulatedVelMagnitude} m/s")
-
-ax.plot(simulatedPosition[0], simulatedPosition[1], marker='o', label="Sim Position")
-ax.plot(datasetPosition[0], datasetPosition[1], marker='o', label="JPL Position")
-ax.plot(0, 0, marker='o', label='Sun')
-ax.plot(1.496E11, 0, marker="o", label="Expected Distance")
-ax.legend()
-
-maxRange = 0
-for vector in [datasetPosition, simulatedPosition]:
-    maxRange = max(
-        maxRange,
-        np.max(np.abs(vector[0])),
-        np.max(np.abs(vector[1])),
-    ) + 1E11
-    
-ax.set_xlim(-maxRange, maxRange)
-ax.set_ylim(-maxRange, maxRange)
-    
-
-plt.show()
-"""
+dataset_pos_magnitude, simulated_pos_magnitude, dataset_vel_magnitude, simulated_vel_magnitude  = np.linalg.norm(dataset_position), np.linalg.norm(simulated_position), np.linalg.norm(dataset_velocity), np.linalg.norm(simulated_velocity)
 
 # Checks to See if the values fall within a certain inaccuracy if not it throws an error
-if abs(np.linalg.norm(changeInPosition)) > 10 or abs(np.linalg.norm(changeInVelocity)) > 10:
-    raise ValueError(f"The Simulation is Not Accurate to {str(newTestingDate)}, or the Position is more than 10km Off: {np.linalg.norm(changeInPosition)/1000} km, The Simulation is Not Accurate to {str(newTestingDate)}, or the Velocity is more than 10km/s Off: {np.linalg.norm(changeInVelocity)/1000} km/s")
+if abs(np.linalg.norm(change_in_position)) > 10 or abs(np.linalg.norm(change_in_velocity)) > 10:
+    raise ValueError(f"The Simulation is Not Accurate to {str(new_testing_date)}, the Position is more than 10km Off: {np.linalg.norm(change_in_position)/1000} km, or the Simulation is Not Accurate to {str(new_testing_date)}, the Velocity is more than 10km/s Off: {np.linalg.norm(change_in_velocity)/1000} km/s")
 else:
     print("Your values are in the expected range")
-    print(changeInPosition)
-    print(changeInVelocity)
+    print(change_in_position)
+    print(change_in_velocity)
 
 
 

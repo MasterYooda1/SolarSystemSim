@@ -1,3 +1,4 @@
 /animation.py
 /NBodyTest.npy
 __pycache__/
+*.npy

@@ -2,6 +2,8 @@ import numpy as np
 from Particle import Particle
 import copy
 
+#!Not Updated
+
 earthMass = 5.97237e24     # https://en.wikipedia.org/wiki/Earth
 earthRadius = 63710 * 1e3  # https://en.wikipedia.org/wiki/Earth
 Earth = Particle(
