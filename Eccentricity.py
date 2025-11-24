@@ -7,7 +7,7 @@ import astropy.units as u
 
 GME = constants.GM_earth.to(u.m**3 / u.s**2).value
 
-DataIn = np.load("TwoBodyTest.npy", allow_pickle=True)
+DataIn = np.load("NBodyTest.npy", allow_pickle=True)
 
 # For Each time step
 for entry in DataIn:

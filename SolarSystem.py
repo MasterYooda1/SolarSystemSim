@@ -230,8 +230,8 @@ def runSim(bodies, saveInterval, stepCount, interval):
     
 # Defining these variables outside of the main function allows them to be imported without running the code in main every time.
 saveInterval = 1 # Writes to File Every N Loops
-interval = 50 # Updates the Simulation every N Seconds
-stepCount = 20000 # Repeats the update for N times
+interval = 10 # Updates the Simulation every N Seconds
+stepCount = 100000 # Repeats the update for N times
 
 def main():
     t = Time("2025-11-17 14:25:00.0", scale="tdb") # Current Time
