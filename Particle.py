@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from numba import njit
 
 """
 Potential integrators that can be Used:
@@ -55,8 +56,8 @@ class Particle():
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt
     
-    def updateLeapfrog(self, particles, dt):
-        """Updates Position and Velocity using Leapfrog Integration. Slightly more advanced and accurate than Euler, without being much more intense.
+    def updateVerletVelocity(self, particles, dt):
+        """Updates Position and Velocity using Verlet-Velocity Integration. Slightly more advanced and accurate than Euler, without being much more intense. !Be Cautious with Acceleration Updates
 
         Args:
             particles (list): List of Particle Objects
@@ -79,7 +80,7 @@ class Particle():
     
     def updateRK4(self, particles, dt):
         """Updates Position and Velocity using Runge-Kutta 4, the function denotes _ as a subscript not snake case.
-        A lot more complicated, seems to either be bugged or the method itself is not as good, yields the same accuracy as Leapfrog as per the Stability Test and Energy Test whilst taking twice as long as Leapfrog.
+        A lot more complicated, seems to either be bugged or the method itself is not as good, yields the same accuracy as Verlet-Velocity as per the Stability Test and Energy Test whilst taking twice as long as Verlet-Velocity.
         Args:
             particles (list): List of all the particles in the simulation
             dt (Integer): Time Step
@@ -118,7 +119,7 @@ class Particle():
                 # Calculate the Vector Distance from one body to another
                 dist_vec =  body.position - posMid
                 # Calculate the Scalar Distance between the bodies
-                dist = np.linalg.norm(dist_vec)
+                dist = np.linalg.norm(dist_vec) 
                 
                 # Checks and Accounts for Division by Zero by replacing the 0 with a very small number
                 min_dist = 1E-25
@@ -131,13 +132,6 @@ class Particle():
                 # Adds the Acceleration from this body to the total acceleration of the body
                 acceleration += np.array((self.G * body.mass/ dist ** 2) * dir, dtype=float)
         return acceleration.copy()
-    
-    def updateGravitationalAcceleration(self, body):
-        """Computes the Gravitational Attraction between two bodies and adds it to the Current one
-
-        Args:
-            body (Particle): the Particle the current Particle is interacting with
-        """
         
         
         

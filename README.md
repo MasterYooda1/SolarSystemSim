@@ -12,7 +12,7 @@ A Simple Python Solar System Simulator built with Euclid's Method for my Univers
 
 
 ## To Do:
-- Three or more different numerical approximations for more accurate results
+- Three or more different numerical approximations for more accurate results /
 - Bugfixing
 - Work on code efficiency
 - Work on presentable and understandable code.

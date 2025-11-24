@@ -201,7 +201,7 @@ def runSim(bodies, saveInterval, stepCount, interval):
         # Loop through each body and update Positon and Velocity
         newStates = []
         for body in bodies:
-            newPos, newVel = body.updateLeapfrog(bodies, interval)
+            newPos, newVel = body.updateVerletVelocity(bodies, interval)
             newStates.append((newPos, newVel))
             
         for body, (newPos, newVel) in zip(bodies, newStates):
@@ -214,6 +214,7 @@ def runSim(bodies, saveInterval, stepCount, interval):
 
     np.save("TwoBodyTest.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
     
+# Defining these variables outside of the main function allows them to be imported without running the code in main every time.
 saveInterval = 1 # Writes to File Every N Loops
 interval = 50 # Updates the Simulation every N Seconds
 stepCount = 20000 # Repeats the update for N times
