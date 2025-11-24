@@ -1,6 +1,4 @@
 import numpy as np
-import math
-from numba import njit
 
 """
 Potential integrators that can be Used:
@@ -36,6 +34,8 @@ class Particle():
         self.mass = mass
         self.G = 6.67408E-11
         
+        self._next_acceleration = np.zeros(3, dtype=float)
+        
     def __str__(self):
         """Returns the Values for the particle in string form
 
@@ -56,7 +56,7 @@ class Particle():
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt
     
-    def updateVerletVelocity(self, particles, dt):
+    def updateVerletVelocity(self, dt):
         """Updates Position and Velocity using Verlet-Velocity Integration. Slightly more advanced and accurate than Euler, without being much more intense. !Be Cautious with Acceleration Updates
 
         Args:
@@ -66,18 +66,12 @@ class Particle():
         Returns:
             np.array(float): returns position and velocity vector(float)
         """
-        pos0 = self.position.copy()
-        vel0 = self.velocity.copy()
+        self.position += self.velocity * dt + 0.5 * self.acceleration * dt ** 2
         
-        aNow = self.computeAllAcceleration(pos0, particles)
-        posNext = pos0 + vel0 * dt + 0.5 * aNow * dt ** 2
+        self.velocity += 0.5 * (self.acceleration + self._next_acceleration) * dt
         
-        aNext = self.computeAllAcceleration(posNext, particles)
-        velNext = vel0 + 0.5 * (aNow + aNext) * dt
+        self.acceleration = self._next_acceleration.copy()
         
-        return posNext, velNext
-        
-    
     def updateRK4(self, particles, dt):
         """Updates Position and Velocity using Runge-Kutta 4, the function denotes _ as a subscript not snake case.
         A lot more complicated, seems to either be bugged or the method itself is not as good, yields the same accuracy as Verlet-Velocity as per the Stability Test and Energy Test whilst taking twice as long as Verlet-Velocity.
@@ -112,12 +106,12 @@ class Particle():
         
         return posNew, velNew   
         
-    def computeAllAcceleration(self, posMid, particles):
+    def computeAllAcceleration(self, particles):
         acceleration = np.zeros(3)
         for body in particles:
             if body is not self: 
                 # Calculate the Vector Distance from one body to another
-                dist_vec =  body.position - posMid
+                dist_vec =  body.position - self.position
                 # Calculate the Scalar Distance between the bodies
                 dist = np.linalg.norm(dist_vec) 
                 
@@ -131,9 +125,7 @@ class Particle():
                 
                 # Adds the Acceleration from this body to the total acceleration of the body
                 acceleration += np.array((self.G * body.mass/ dist ** 2) * dir, dtype=float)
-        return acceleration.copy()
-        
-        
+        self.acceleration = acceleration
         
     def kineticEnergy(self):
         """Calculates the body's Kinetic Energy
