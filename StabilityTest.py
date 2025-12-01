@@ -1,5 +1,5 @@
 import time
-from SolarSystem import toStateVec, save_interval, interval, step_count
+from SolarSystem import to_state_vec, save_interval, interval, step_count
 import numpy as np
 from astropy.time import Time
 from astropy.coordinates import get_body_barycentric_posvel
@@ -23,7 +23,7 @@ if not chosen_body in body_names:
 
 pos, vel = get_body_barycentric_posvel(chosen_body.lower(), new_testing_date, ephemeris="jpl")
 
-dataset_position, dataset_velocity = toStateVec(pos, vel, new_testing_date)
+dataset_position, dataset_velocity = to_state_vec(pos, vel, new_testing_date)
 dataset_position, dataset_velocity = np.array(dataset_position, dtype=float) , np.array(dataset_velocity, dtype=float)
 
 # Load in the Test Data to Check for Accuracy

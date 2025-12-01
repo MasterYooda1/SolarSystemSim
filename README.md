@@ -18,5 +18,5 @@ A Simple Python Solar System Simulator built with Euclid's Method for my Univers
 - Work on presentable and understandable code.
 - Separate each step into its relevant file
 - Implement Tests to Check for Accuracy with other data.
-- Relate the project to some field which the report can be written on. Perhaps Predicting Eclipses on other planets, test data from records of eclipses on Earth etc.
+- Relate the project to some field which the report can be written on. Perhaps Predicting Eclipses on other planets, test data from records of eclipses on Earth etc. (Turns out predicting eclipses requires an insane amount of accuracy, rather than the current 300km inaccuracy after just 5 days)
 
