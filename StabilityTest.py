@@ -7,14 +7,14 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 # Test to check whether the orbit remains stable after a certain time
 
-body_names = ["Sun", "Mercury", "Venus", "Earth", "Moon", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+body_names = ["Sun", "Mercury", "Venus", "Earth", "Moon", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "Rogue"]
 #delay = 3 # The Amount of days you want to test data in, requires the interval to be 86400 (1 day)
 #if not delay % save_interval == 0:
 #    raise ValueError("The Number of days you want to test falls between a save interval, please change the delay or the save interval")
     
 chosen_body = "Earth"
-days_difference = 5
-new_testing_date = Time("2025-11-22 14:25:00.0", scale="tdb") # Time to Check for Accuracy
+days_difference = 365
+new_testing_date = Time("2026-11-22 14:25:00.0", scale="tdb") # Time to Check for Accuracy
 
 if not type(chosen_body) is str:
     raise TypeError("Only String Names, like 'Earth' are allowed")
@@ -27,7 +27,7 @@ dataset_position, dataset_velocity = to_state_vec(pos, vel, new_testing_date)
 dataset_position, dataset_velocity = np.array(dataset_position, dtype=float) , np.array(dataset_velocity, dtype=float)
 
 # Load in the Test Data to Check for Accuracy
-data_in = np.load("NBodyTest.npy", allow_pickle=True)
+data_in = np.load("NBodyTestWRogue.npy", allow_pickle=True)
 
 entry_no = (days_difference * 86400) // interval // save_interval # Value for the Entry we are testing. There are step_count entries, every interval seconds and saves every save_interval steps, converts days_difference to Seconds
 if entry_no <= step_count:

@@ -193,6 +193,18 @@ def loadBodies(t):
     )
     bodies.append(Pluto)
     
+
+    # A Rogue Planet the Size of Earth, Orbitting around 1.3 times further than Pluto at 5x the speed
+    m_rogue = (constants.GM_sun / G).value * 10
+    Rogue = Particle(
+        position=np.array(position)*5,
+        velocity=np.array(velocity) * np.array([-0.7, 1, 0]) * 1.5,
+        acceleration=np.array([0, 0, 0]),
+        name="Rogue",
+        mass=m_rogue 
+    )
+    bodies.append(Rogue)
+    
     return bodies
 
 def run_sim(bodies, save_interval, step_count, interval):
@@ -226,11 +238,11 @@ def run_sim(bodies, save_interval, step_count, interval):
             Data.append([step, *(copy.deepcopy(b) for b in bodies)]) # Writes the Step number as well as a copy of the data for each body in the system
 
 
-    np.save("NBodyTest.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
+    np.save("NBodyTestWRogue.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
     
 # Defining these variables outside of the main function allows them to be imported without running the code in main every time.
-save_interval = 1 # Writes to File Every N Loops
-interval = 10 # Updates the Simulation every N Seconds
+save_interval = 100 # Writes to File Every N Loops
+interval = 86400 # Updates the Simulation every N Seconds
 step_count = 100000 # Repeats the update for N times
 
 def main():

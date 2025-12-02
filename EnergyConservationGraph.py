@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-data_in = np.load("NBodyTest.npy", allow_pickle=True)
+data_in = np.load("NBodyTestWRogue.npy", allow_pickle=True)
 G = 6.67408E-11
 
-steps_per_plot = 100 # Allows you to plot less points with really large datasets
+steps_per_plot = 5 # Allows you to plot less points with really large datasets
 
 e_total = []
 e_k_total = []

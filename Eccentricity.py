@@ -2,12 +2,16 @@ import numpy as np
 from matplotlib import pyplot as plt
 from poliastro import constants
 import astropy.units as u
+import matplotlib.pyplot as plt
+from scipy.signal import lfilter
 # Find the Eccentricity of Any orbit
 # To Get an accurate value you must scale the time interval with the moons period. (interval * 2000 = period_M)
 
-gm_e = constants.gm_earth.to(u.m**3 / u.s**2).value
+gm_e = constants.GM_earth.to(u.m**3 / u.s**2).value
 
-data_in = np.load("NBodyTest.npy", allow_pickle=True)
+data_in = np.load("NBodyTestWRogue.npy", allow_pickle=True)
+
+e_list = []
 
 # For Each time step
 for entry in data_in:
@@ -29,9 +33,20 @@ for entry in data_in:
     
     # Calculate the Magnitude of the Eccentricity
     e = np.linalg.norm(e_vec)
+    e_list.append(e)
+    
+    
+n = 500
+b = [1.0 / n] * n
+a = 1
+yy = lfilter(b, a, e_list)
     
 # Find the Overall Mean Eccentricity
-print(np.mean(e))
+ax = plt.subplot()
+x = np.arange(0, len(data_in))
+ax.plot(x, yy)
+plt.show()
+print(np.mean(e_list))
     
     
     
