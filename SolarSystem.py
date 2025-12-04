@@ -41,6 +41,108 @@ def to_state_vec(pos, vel, t):
     
     return position, velocity
 
+def return_acc_at_pos(self, position, bodies):
+    """Calculates the Acceleration at a position in space and returns it rather than updating the class like in compute_all_acceleration
+
+    Args:
+        position (np.array): position we are calculating from
+        bodies (_type_): the bodies which we are calculating the acceleration based on
+
+    Returns:
+        _type_: _description_
+    """
+    acceleration = np.zeros(3)
+    for body in bodies:
+        if body is not self: 
+            # Calculate the Vector Distance from one body to another
+            dist_vec =  body.position - position
+            # Calculate the Scalar Distance between the bodies
+            dist = np.linalg.norm(dist_vec) 
+            
+            # Checks and Accounts for Division by Zero by replacing the 0 with a very small number
+            min_dist = 1E-25
+            if dist < min_dist:
+                dist = min_dist
+                
+            # Unit Vector to Calculate the Acceleration along the right Axes 
+            dir = dist_vec / dist
+            
+            # Adds the Acceleration from this body to the total acceleration of the body
+            acceleration += np.array((self.G * body.mass/ dist ** 2) * dir, dtype=float)
+    return acceleration
+
+def update_verlet_velocity(bodies, interval):
+    """Updates the Bodies using the Verlet Velocity algorithm, A Symplectic Integrator. Faster and more accurate. Energy Conserving.
+
+    Args:
+        bodies (list): List of particle objects containing celestial bodies
+    """
+    for body in bodies:
+            body.position += body.velocity * interval + 0.5 * body.acceleration * interval ** 2
+            
+    for body in bodies:
+        body._next_acceleration = np.zeros(3, dtype=float)
+        for body2 in bodies:
+            if body is not body2:
+                dist_vec = body2.position - body.position
+                dist = np.linalg.norm(dist_vec)
+                if dist < 1E-25:
+                    dist = 1E-25
+                direction = dist_vec / dist
+                body._next_acceleration += (body.G * body2.mass / dist ** 2) * direction
+                
+    for body in bodies:
+        body.velocity += 0.5 * (body.acceleration + body._next_acceleration) * interval
+        body.acceleration = body._next_acceleration.copy()
+
+def update_euler(bodies, interval):
+    """Updates Position and Velocity using Euler's Method.
+
+        Args:
+            bodies (list): List of particle objects
+            interval (Integer): Time Step
+    """
+    for body in bodies:
+        body.compute_all_acceleration(body.position, bodies)
+    
+    for body in bodies:
+        body.velocity += body.acceleration * interval
+        body.position += body.velocity * interval
+                
+def update_RK4(bodies, interval):
+    """A Non-Symplectic Integrator which uses multiple steps to refine the change in position and velocity, incredibly slow
+
+    Args:
+        bodies (list): list of particles
+        interval (integer): time step
+    """
+    for body in bodies:
+        pos_0 = body.position.copy()
+        vel_0 = body.velocity.copy()
+        
+        # Step One, A Euler Approximation
+        k1_vel = body.velocity.copy()
+        k1_acc = return_acc_at_pos(body, pos_0, bodies)
+        
+        # Step Two, adds half the next step
+        pos_1_mid = pos_0 + interval * k1_vel / 2
+        k2_vel = vel_0 + interval * k1_acc / 2
+        k2_acc = return_acc_at_pos(body, pos_1_mid, bodies)
+        
+        # Step Three
+        pos_2_mid = pos_0 + interval * k2_vel / 2
+        k3_vel = vel_0 + interval * k2_vel / 2
+        k3_acc = return_acc_at_pos(body, pos_2_mid, bodies)
+        
+        # Step Four
+        pos_3_mid = pos_0 + interval * k3_vel
+        k4_vel = vel_0 + interval * k3_acc
+        k4_acc = return_acc_at_pos(body, pos_3_mid, bodies)
+        
+        # Combine All the Steps and Update the Body
+        body.position = pos_0 + (interval / 6) * (k1_vel + 2 * k2_vel + 2 * k3_vel + k4_vel)
+        body.velocity = vel_0 + (interval / 6) * (k1_acc + 2 * k2_acc + 2 * k3_acc + k4_acc)
+
 def loadBodies(t):
 
     # Create the list of the Bodies in the Simulation
@@ -195,15 +297,15 @@ def loadBodies(t):
     
 
     # A Rogue Planet the Size of Earth, Orbitting around 1.3 times further than Pluto at 5x the speed
-    m_rogue = (constants.GM_sun / G).value * 10
-    Rogue = Particle(
-        position=np.array(position)*5,
-        velocity=np.array(velocity) * np.array([-0.7, 1, 0]) * 1.5,
-        acceleration=np.array([0, 0, 0]),
-        name="Rogue",
-        mass=m_rogue 
-    )
-    bodies.append(Rogue)
+    #m_rogue = (constants.GM_earth / G).value
+    #Rogue = Particle(
+    #    position=np.array(position)*2,
+    #    velocity=np.array(velocity) * np.array([-0.7, 1, 0]) * 1.5,
+    #    acceleration=np.array([0, 0, 0]),
+    #    name="Rogue",
+    #    mass=m_rogue 
+    #)
+    #bodies.append(Rogue)
     
     return bodies
 
@@ -211,42 +313,33 @@ def run_sim(bodies, save_interval, step_count, interval):
     Data = [] # Data to be written to file
 
     for body in bodies:
-        body.compute_all_acceleration(bodies)
+        body.compute_all_acceleration(body.position, bodies)
     
     for step in range(step_count):
         # Loop through each body and update Positon and Velocity
-        for body in bodies:
-            body.position += body.velocity * interval + 0.5 * body.acceleration * interval ** 2
-            
-        for body in bodies:
-            body._next_acceleration = np.zeros(3, dtype=float)
-            for body2 in bodies:
-                if body is not body2:
-                    dist_vec = body2.position - body.position
-                    dist = np.linalg.norm(dist_vec)
-                    if dist < 1E-25:
-                        dist = 1E-25
-                    direction = dist_vec / dist
-                    body._next_acceleration += (body.G * body2.mass / dist ** 2) * direction
-                    
-        for body in bodies:
-            body.velocity += 0.5 * (body.acceleration + body._next_acceleration) * interval
-            body.acceleration = body._next_acceleration.copy()
+        match chosen_updater:
+            case 1:
+                update_verlet_velocity(bodies, interval)
+            case 2:
+                update_euler(bodies, interval)
+            case 3:
+                update_RK4(bodies, interval)
         
         # If the Step is a Multiple of the save_interval Write to file.
         if step % save_interval == 0:
             Data.append([step, *(copy.deepcopy(b) for b in bodies)]) # Writes the Step number as well as a copy of the data for each body in the system
 
 
-    np.save("NBodyTestWRogue.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
+    np.save("NBodyTestVerlet.npy", Data, allow_pickle=True) # Writes the List Data to the aforementioned file
     
 # Defining these variables outside of the main function allows them to be imported without running the code in main every time.
 save_interval = 100 # Writes to File Every N Loops
-interval = 86400 # Updates the Simulation every N Seconds
+interval = 50 # Updates the Simulation every N Seconds
 step_count = 100000 # Repeats the update for N times
+chosen_updater = 1 # The update method which the simulation uses (From 1 - 3)
 
 def main():
-    t = Time("2025-11-17 14:25:00.0", scale="tdb") # Current Time
+    t = Time("2025-12-01 12:00:00", scale="tdb") # Desired Start Time,  1st December 2025
     bodies = loadBodies(t)
 
     run_sim(bodies, save_interval, step_count, interval)

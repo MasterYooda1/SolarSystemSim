@@ -104,12 +104,12 @@ class Particle():
         
         return pos_new, vel_new   
         
-    def compute_all_acceleration(self, particles):
+    def compute_all_acceleration(self, position, particles):
         acceleration = np.zeros(3)
         for body in particles:
             if body is not self: 
                 # Calculate the Vector Distance from one body to another
-                dist_vec =  body.position - self.position
+                dist_vec =  body.position - position
                 # Calculate the Scalar Distance between the bodies
                 dist = np.linalg.norm(dist_vec) 
                 
